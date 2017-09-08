@@ -9,60 +9,49 @@ import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 
 from Models import *
-import dataset
-import data_image 
 
 def main(_):
 
     num_channels = FLAGS.num_channels
-    image_size = 128
+    image_size = 28
 
-    model = GAN(save_model_path = FLAGS.save_model_path, save_result_path = FLAGS.save_result_path, 
-      image_size = image_size, batch_size = FLAGS.batch_size)
+    model = GAN(len_random_vector = FLAGS.len_random_vector, save_model_path = FLAGS.save_model_path, save_result_path = FLAGS.save_result_path, 
+      image_size = image_size, batch_size = FLAGS.batch_size, data_type = 'MNIST')
 
     saver = tf.train.Saver()
     
     writer = tf.summary.FileWriter(FLAGS.save_model_path)
 
-    # mnist_data = input_data.read_data_sets('MNIST_data', one_hot=True)
-    # num_labeled_image, num_train_im = 2, 1
-    # num_validation_im = num_labeled_image - num_train_im
-    # perm = np.arange(num_labeled_image) + 1
-    # all_data = dataset.prepare_data_set(FLAGS.train_dir, 'Training_', 
-    #                                     perm[num_validation_im:], perm[0:num_validation_im], image_size, 
-    #                                     num_channel = num_channels, one_hot=True, reshape=False)
-
-    training_data = data_image.prepare_data_set(FLAGS.train_dir, 0.05, num_channels = num_channels, isSubstractMean = False)
+    mnist_data = input_data.read_data_sets('../workspace/tensorflow-DCGAN/MNIST_data', one_hot=True)
 
     with tf.Session() as sess:
       sess.run(tf.global_variables_initializer())
       writer.add_graph(sess.graph)
 
-      # digit = 6
-      # digit_2 = 9
-      # train_digits_of_interest = []
-      # for image, label in zip(mnist_data.train.images, mnist_data.train.labels):
-      #     # if label[digit]:
-      #     train_digits_of_interest.append(image)
-      # test_digits_of_interest = []
-      # for image, label in zip(mnist_data.test.images, mnist_data.test.labels):
-      #     # if label[digit] or label[digit_2]:
-      #     test_digits_of_interest.append(image)
-
-      # random.seed(12345)
-      # random.shuffle(train_digits_of_interest)
-      # random.shuffle(test_digits_of_interest)
+      digit = 6
+      train_digits_of_interest = []
+      for image, label in zip(mnist_data.train.images, mnist_data.train.labels):
+          # if label[digit]:
+            train_digits_of_interest.append(image)
+      random.shuffle(train_digits_of_interest)
 
       batch_size = FLAGS.batch_size
-      for step in range(10000):
-        # batch_index = step * batch_size % len(train_digits_of_interest)
-        # batch_index = min(batch_index, len(train_digits_of_interest) - batch_size)
-        # batch = train_digits_of_interest[batch_index:(batch_index + batch_size)]
-        # batch, batch_ys = all_data.train.next_batch(batch_size, 1)
-        # batch = np.reshape(batch, [len(batch), image_size, image_size, 1])
-        batch = training_data.train.next_batch(batch_size)
+      epoch_id = 1
+      step = 0
+      idx = 0
+      while epoch_id <= 25:
+        batch_index = step * batch_size % len(train_digits_of_interest)
+        if batch_index > len(train_digits_of_interest) - batch_size:
+          batch_index = len(train_digits_of_interest) - batch_size
+          random.shuffle(train_digits_of_interest)
+          idx = 0
+          epoch_id += 1
+        idx += 1
+        batch = train_digits_of_interest[batch_index:(batch_index + batch_size)]
+        batch = np.reshape(batch, [len(batch), image_size, image_size, 1])
 
-        model.train_model(batch, step, 100, saver, sess, writer)
+        model.train_model(batch, step, idx, epoch_id, 100, saver, sess, writer)
+        step += 1
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
@@ -95,14 +84,14 @@ if __name__ == '__main__':
   parser.add_argument(
       '--len_random_vector',
       type=int,
-      default=32,
+      default=100,
       help='Length of input random vector'
   )
 
   parser.add_argument(
       '--batch_size',
       type=int,
-      default=32,
+      default=64,
       help='Size of batch'
   )
   FLAGS, unparsed = parser.parse_known_args()

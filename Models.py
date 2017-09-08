@@ -10,7 +10,7 @@ from GANs import *
 from common import *
 
 class GAN(object):
-    def __init__(self, len_random_vector = 32, image_size = 28, batch_size = 32, save_model_path = '', save_result_path = ''):
+    def __init__(self, len_random_vector = 32, image_size = 28, batch_size = 32, save_model_path = '', save_result_path = '', data_type = 'default'):
         """
         Inputs:
         - x: tf.placeholder, for the input images
@@ -31,7 +31,7 @@ class GAN(object):
 
         self.batch_size = batch_size
 
-        GAN_model = Nets(self.image_size, self.batch_size, self.KEEP_PROB)
+        GAN_model = Nets(self.image_size, self.batch_size, self.KEEP_PROB, data_type = data_type)
         
         with tf.variable_scope('generator') as scope:
             self.generation = GAN_model.create_generator_DCGAN(self.Z)
@@ -42,6 +42,8 @@ class GAN(object):
             self.discrim_real = GAN_model.create_discriminator_DCGAN(self.X)
             scope.reuse_variables()
             self.disrim_gen = GAN_model.create_discriminator_DCGAN(self.generation)
+        d_real_summary = tf.summary.histogram("d_", tf.nn.sigmoid(self.discrim_real))
+        d_fake_summary = tf.summary.histogram("d", tf.nn.sigmoid(self.disrim_gen))
             
         with tf.name_scope('loss'):
             d_loss_real = tf.reduce_mean(
@@ -52,8 +54,8 @@ class GAN(object):
 
             self.g_loss = tf.reduce_mean(
                 tf.nn.sigmoid_cross_entropy_with_logits(logits = self.disrim_gen, labels = tf.ones_like(self.disrim_gen)))
-        tf.summary.scalar('d_loss', self.d_loss)
-        tf.summary.scalar('g_loss', self.g_loss)
+        d_loss_summary = tf.summary.scalar('d_loss', self.d_loss)
+        g_loss_summary = tf.summary.scalar('g_loss', self.g_loss)
         # with tf.name_scope('accuracy'):
         #     d_accuracy = tf.reduce_sum(tf.cast(tf.equal(tf.round(self.discrim_real), tf.round(y_)), tf.float32))
 
@@ -64,21 +66,30 @@ class GAN(object):
             g_training_vars = [v for v in tf.trainable_variables() if v.name.startswith('generator/')]
             self.g_optimizer = tf.train.AdamOptimizer(learning_rate = 0.0002, beta1=0.5).minimize(self.g_loss, var_list = g_training_vars)  
 
-    def train_model(self, batch, step, save_step, saver, session, writer):
+        self.g_sum = tf.summary.merge([g_loss_summary])
+        self.d_sum = tf.summary.merge([d_loss_summary, d_real_summary, d_fake_summary])
+
+    def train_model(self, batch, step, idx, epoch_id, save_step, saver, session, writer):
         batch_size = self.batch_size
         len_rand_vec = self.len_random_vector
         
-        _, discriminator_loss = session.run([self.d_optimizer, self.d_loss],
-         feed_dict = {self.X: batch, self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 0.5})
-        _, generator_loss = session.run([self.g_optimizer, self.g_loss],
-         feed_dict = {self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 1.0})
+        for i in range(0,1):
+            _, discriminator_loss, d_sum = session.run([self.d_optimizer, self.d_loss, self.d_sum],
+                feed_dict = {self.X: batch, self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 0.5})
+            writer.add_summary(d_sum, idx)
+
+        for i in range(0,20):
+            _, generator_loss, g_sum = session.run([self.g_optimizer, self.g_loss, self.g_sum],
+                feed_dict = {self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 1.0})
+            writer.add_summary(g_sum, idx)
+
 
         if step % save_step == 0:
           # s = sess.run(merged_summary, feed_dict={x:batch_xs, y_: batch_ys, keep_prob: 1.0})
           # writer.add_summary(s, all_data.train.epochs_completed*100 + i)
-          print("Step {} Eval: {} {}".format(step, discriminator_loss, generator_loss))
+          print("Epoch {} Step {} Eval: {} {}".format(epoch_id, step, discriminator_loss, generator_loss))
           result = session.run(self.sample, {self.Z: np.random.normal(size = (batch_size, len_rand_vec))})
-          save_images(result, [6,6], self.save_result_path + 'test_FCN_result_' + "%03d" % step + '.png')
+          save_images(result, [8,8], self.save_result_path + 'test_result_' + "%03d" % step + '.png')
           # scipy.io.savemat(self.save_result_path + 'test_FCN_result_' + "%03d" % step + '.mat', mdict = {'resultList': np.squeeze(result)})
           # saver.save(session, self.save_model_path + 'my-model', global_step = step)
 

@@ -1,7 +1,6 @@
 # tensorflow-DCGAN
 
-#### Implementation of [Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks](https://arxiv.org/abs/1511.06434)
-#### Code inspired by: https://github.com/carpedm20/DCGAN-tensorflow
+TensorFlow implementation of [Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks](https://arxiv.org/abs/1511.06434). The code is inspired by: https://github.com/carpedm20/DCGAN-tensorflow
 * DCGAN generator used for LSUN in the paper
 ![alt text](https://github.com/conan7882/tensorflow-DCGAN/blob/develop/fig/DCGAN.png)
 <!--- * Graphs of this implementation

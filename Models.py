@@ -10,7 +10,8 @@ from GANs import *
 from common import *
 
 class GAN(object):
-    def __init__(self, len_random_vector = 32, image_size = 28, batch_size = 32, save_model_path = '', save_result_path = '', data_type = 'default'):
+    def __init__(self, len_random_vector = 32, image_size = 28, batch_size = 32, num_channel = 1,
+        save_model_path = '', save_result_path = '', data_type = 'default'):
         """
         Inputs:
         - x: tf.placeholder, for the input images
@@ -22,7 +23,7 @@ class GAN(object):
         # self.Z = z
         self.image_size = image_size
         self.len_random_vector = len_random_vector
-        self.X = tf.placeholder(tf.float32, [None, self.image_size, self.image_size, 1])
+        self.X = tf.placeholder(tf.float32, [None, self.image_size, self.image_size, num_channel])
         self.Z = tf.placeholder(tf.float32, [None, self.len_random_vector])
         self.KEEP_PROB = tf.placeholder(tf.float32)
 
@@ -44,6 +45,7 @@ class GAN(object):
             self.disrim_gen = GAN_model.create_discriminator_DCGAN(self.generation)
         d_real_summary = tf.summary.histogram("d_", tf.nn.sigmoid(self.discrim_real))
         d_fake_summary = tf.summary.histogram("d", tf.nn.sigmoid(self.disrim_gen))
+        G_summary = tf.summary.image("G", self.generation)
             
         with tf.name_scope('loss'):
             d_loss_real = tf.reduce_mean(
@@ -66,7 +68,7 @@ class GAN(object):
             g_training_vars = [v for v in tf.trainable_variables() if v.name.startswith('generator/')]
             self.g_optimizer = tf.train.AdamOptimizer(learning_rate = 0.0002, beta1=0.5).minimize(self.g_loss, var_list = g_training_vars)  
 
-        self.g_sum = tf.summary.merge([g_loss_summary])
+        self.g_sum = tf.summary.merge([g_loss_summary, G_summary])
         self.d_sum = tf.summary.merge([d_loss_summary, d_real_summary, d_fake_summary])
 
     def train_model(self, batch, step, idx, epoch_id, save_step, saver, session, writer):
@@ -76,12 +78,12 @@ class GAN(object):
         for i in range(0,1):
             _, discriminator_loss, d_sum = session.run([self.d_optimizer, self.d_loss, self.d_sum],
                 feed_dict = {self.X: batch, self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 0.5})
-            writer.add_summary(d_sum, idx)
+            writer.add_summary(d_sum, step)
 
-        for i in range(0,20):
+        for i in range(0,5):
             _, generator_loss, g_sum = session.run([self.g_optimizer, self.g_loss, self.g_sum],
                 feed_dict = {self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 1.0})
-            writer.add_summary(g_sum, idx)
+            writer.add_summary(g_sum, step)
 
 
         if step % save_step == 0:
@@ -89,7 +91,12 @@ class GAN(object):
           # writer.add_summary(s, all_data.train.epochs_completed*100 + i)
           print("Epoch {} Step {} Eval: {} {}".format(epoch_id, step, discriminator_loss, generator_loss))
           result = session.run(self.sample, {self.Z: np.random.normal(size = (batch_size, len_rand_vec))})
-          save_images(result, [8,8], self.save_result_path + 'test_result_' + "%03d" % step + '.png')
+          if batch_size == 32:
+            sample_image_grid_size = [6,6]
+          else:
+            sample_image_grid_size = [8,8]
+
+          save_images(result, sample_image_grid_size, self.save_result_path + 'test_result_' + "%03d" % step + '.png')
           # scipy.io.savemat(self.save_result_path + 'test_FCN_result_' + "%03d" % step + '.mat', mdict = {'resultList': np.squeeze(result)})
           # saver.save(session, self.save_model_path + 'my-model', global_step = step)
 

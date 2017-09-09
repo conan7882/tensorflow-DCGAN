@@ -1,9 +1,46 @@
 import numpy as np 
 import collections
 import scipy.io
+import scipy.misc
 import os
+import pickle
+import random
 
 import tensorflow as tf
+
+class CIFAT10(object):
+    def __init__(self, file_path):
+        self._file_list = [os.path.join(file_path, 'data_batch_' + str(batch_id)) for batch_id in range(1,6)]
+        self._num_channels = 3
+        self._batch_id = 0
+        self._batch_file_id = -1
+        self._image = []
+        self._epochs_completed = 0
+
+    def next_batch_file(self):
+        if self._batch_file_id >= len(self._file_list)-1:
+            self._batch_file_id = 0
+            self._epochs_completed += 1
+        else:
+            self._batch_file_id += 1
+        self._image = unpickle(self._file_list[self._batch_file_id])
+        random.shuffle(self._image)
+        # scipy.misc.imsave('test.png', self.image[100])
+
+    def next_batch(self, batch_size):
+        batch_id_end = self._batch_id + batch_size
+        if batch_id_end >= len(self._image):
+            self.next_batch_file()
+            self._batch_id = 0
+            batch_id_end = batch_size
+        batch_image = self._image[self._batch_id:batch_id_end]
+        self._batch_id = batch_id_end
+        return batch_image
+
+    @property
+    def epochs_completed(self):
+        return self._epochs_completed
+
 
 class TestImage(object):
     def __init__(self, test_file_path, patch_size, sample_mean = 0, num_channels = 1):
@@ -193,5 +230,15 @@ def average_train_data(file_list, num_channels):
     return mean_list/len(file_list)
 
 
+def unpickle(file):
+    with open(file, 'rb') as fo:
+        dict = pickle.load(fo, encoding='bytes')
+    image = dict[b'data']
 
+    r = image[:,:32*32].reshape(-1,32,32)
+    g = image[:,32*32: 2*32*32].reshape(-1,32,32)
+    b = image[:,2*32*32:].reshape(-1,32,32)
+
+    image = np.stack((r,g,b),axis=-1)
+    return image
 

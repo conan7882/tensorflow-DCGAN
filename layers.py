@@ -40,7 +40,8 @@ def dconv(x, filter_height, filter_width, name, fuse_x = None, output_shape = []
 
 
 def fc(x, num_in, num_out, name, relu = True):
-    num_in = x.shape[-1]
+    num_in = x.get_shape().as_list()[1]
+    # num_in = x.shape[-1]
     with tf.variable_scope(name) as scope:
         weights = tf.get_variable('weights', shape = [num_in, num_out], trainable = True)
         biases = tf.get_variable('biases', shape = [num_out], trainable = True)

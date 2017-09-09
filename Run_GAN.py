@@ -18,13 +18,12 @@ def main(_):
     image_size = 128
 
     model = GAN(save_model_path = FLAGS.save_model_path, save_result_path = FLAGS.save_result_path, 
-      image_size = image_size, batch_size = FLAGS.batch_size)
+      image_size = image_size, batch_size = FLAGS.batch_size, data_type = 'MNIST')
 
     saver = tf.train.Saver()
     
     writer = tf.summary.FileWriter(FLAGS.save_model_path)
 
-    # mnist_data = input_data.read_data_sets('MNIST_data', one_hot=True)
     # num_labeled_image, num_train_im = 2, 1
     # num_validation_im = num_labeled_image - num_train_im
     # perm = np.arange(num_labeled_image) + 1
@@ -38,31 +37,14 @@ def main(_):
       sess.run(tf.global_variables_initializer())
       writer.add_graph(sess.graph)
 
-      # digit = 6
-      # digit_2 = 9
-      # train_digits_of_interest = []
-      # for image, label in zip(mnist_data.train.images, mnist_data.train.labels):
-      #     # if label[digit]:
-      #     train_digits_of_interest.append(image)
-      # test_digits_of_interest = []
-      # for image, label in zip(mnist_data.test.images, mnist_data.test.labels):
-      #     # if label[digit] or label[digit_2]:
-      #     test_digits_of_interest.append(image)
-
-      # random.seed(12345)
-      # random.shuffle(train_digits_of_interest)
-      # random.shuffle(test_digits_of_interest)
-
       batch_size = FLAGS.batch_size
       for step in range(10000):
-        # batch_index = step * batch_size % len(train_digits_of_interest)
-        # batch_index = min(batch_index, len(train_digits_of_interest) - batch_size)
-        # batch = train_digits_of_interest[batch_index:(batch_index + batch_size)]
         # batch, batch_ys = all_data.train.next_batch(batch_size, 1)
         # batch = np.reshape(batch, [len(batch), image_size, image_size, 1])
         batch = training_data.train.next_batch(batch_size)
 
-        model.train_model(batch, step, 100, saver, sess, writer)
+        # model.train_model(batch, step, 100, saver, sess, writer)
+        model.train_model(batch, step, 0, training_data.train.epochs_completed, 100, saver, sess, writer)
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()

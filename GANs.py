@@ -13,7 +13,7 @@ class Nets(object):
         self.DATA_TYPE = data_type
 
     def create_generator_DCGAN(self, z, train = True):
-        return generator_MNIST(z, self.image_size, self.image_size, self.batch_size, train = train)
+        return generator_MNIST(z, self.image_size, self.image_size, self.batch_size, train = train, output_channel = self.num_channel)
 
     def create_discriminator_DCGAN(self, input_im):
         return discriminator_MNIST(input_im, self.batch_size)
@@ -53,7 +53,7 @@ class Nets(object):
         # tf.sigmoid(fc2)
         return fc2
 
-def generator_MNIST(z, out_length, out_width, batch_size, output_channel = self.num_channel, train = True):
+def generator_MNIST(z, out_length, out_width, batch_size, output_channel = 1, train = True):
 
     final_dim = 64
     filter_size = 5

@@ -79,8 +79,8 @@ class GAN(object):
         d_grads_summary = [tf.summary.histogram('gradient/' + var.name, grad) for grad, var in d_grads]
         g_grads_summary = [tf.summary.histogram('gradient/' + var.name, grad) for grad, var in g_grads]
 
-        self.g_sum = tf.summary.merge([g_loss_summary, G_summary, g_var_summary, g_grads_summary])
-        self.d_sum = tf.summary.merge([d_loss_summary, d_real_summary, d_fake_summary, d_var_summary, d_grads_summary])
+        self.g_sum = tf.summary.merge([g_loss_summary, G_summary, g_grads_summary])
+        self.d_sum = tf.summary.merge([d_loss_summary, d_real_summary, d_fake_summary, d_grads_summary])
 
     def train_model(self, batch, step, idx, epoch_id, save_step, saver, session, writer):
         batch_size = self.batch_size
@@ -90,16 +90,23 @@ class GAN(object):
             _, discriminator_loss, d_sum = session.run([self.d_optimizer, self.d_loss, self.d_sum],
                 feed_dict = {self.X: batch, self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 0.5})
             writer.add_summary(d_sum, step)
+            # session.run(self.d_optimizer,
+            #     feed_dict = {self.X: batch, self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 0.5})
 
         for i in range(0,3):
             _, generator_loss, g_sum = session.run([self.g_optimizer, self.g_loss, self.g_sum],
                 feed_dict = {self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 1.0})
             writer.add_summary(g_sum, step)
+            # session.run(self.g_optimizer,
+            #     feed_dict = {self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 1.0})
 
 
         if step % save_step == 0:
-          # s = sess.run(merged_summary, feed_dict={x:batch_xs, y_: batch_ys, keep_prob: 1.0})
-          # writer.add_summary(s, all_data.train.epochs_completed*100 + i)
+          # discriminator_loss, generator_loss, d_sum, g_sum = session.run([self.d_loss, self.g_loss, self.d_sum, self.g_sum],
+          #   feed_dict = {self.X: batch, self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 1.0})
+          # writer.add_summary(d_sum, step)
+          # writer.add_summary(g_sum, step)
+
           print("Epoch {} Step {} Eval: {} {}".format(epoch_id, step, discriminator_loss, generator_loss))
           result = session.run(self.sample, {self.Z: np.random.normal(size = (batch_size, len_rand_vec))})
           if batch_size == 32:

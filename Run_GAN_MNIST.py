@@ -19,7 +19,6 @@ def main(_):
       image_size = image_size, batch_size = FLAGS.batch_size, data_type = 'MNIST')
 
     saver = tf.train.Saver()
-    
     writer = tf.summary.FileWriter(FLAGS.save_model_path)
 
     mnist_data = input_data.read_data_sets('../workspace/tensorflow-DCGAN/MNIST_data', one_hot=True)
@@ -31,9 +30,7 @@ def main(_):
       digit = 6
       train_digits_of_interest = []
       for image, label in zip(mnist_data.train.images, mnist_data.train.labels):
-        # image = image.reshape((28,28,1)).astype(np.float)
         image = image*2.-1.
-        # print(image[300:400])
           # if label[digit]:
         train_digits_of_interest.append(image)
       random.shuffle(train_digits_of_interest)

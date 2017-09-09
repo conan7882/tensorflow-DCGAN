@@ -4,70 +4,19 @@ import tensorflow as tf
 
 from layers import *
 
-
 class Nets(object):   
-    def __init__(self, image_size, batch_size, keep_prob, data_type = 'defaul'):
+    def __init__(self, image_size, batch_size, keep_prob, num_channel = 1, data_type = 'defaul'):
         self.batch_size = batch_size
         self.image_size = image_size
+        self.num_channel = num_channel
         self.KEEP_PROB = keep_prob
         self.DATA_TYPE = data_type
 
     def create_generator_DCGAN(self, z, train = True):
-        if self.DATA_TYPE is 'MNIST':
-            return generator_MNIST(z, self.image_size, self.image_size, self.batch_size, train = train)
-        else:
-            print('WRONG!!!')
-        # final_dim = 64
-        # start_size = 8
-        # filter_size = 5
-        # output_channel = 1
-
-        # fc1 = fc(z, z.shape[1], start_size*start_size*final_dim*8, 'fc1')
-        # fc1 = tf.nn.relu(batch_norm(fc1, 'd_bn1', train = train))
-        # fc1_reshape = tf.reshape(fc1, [-1, start_size, start_size, final_dim*8])
-
-        # dconv2 = dconv(fc1_reshape, filter_size, filter_size, 'dconv2', 
-        #     output_shape = [self.batch_size, start_size*2, start_size*2, final_dim*4])
-        # bn_dconv2 = tf.nn.relu(batch_norm(dconv2, 'd_bn2', train = train))
-
-        # dconv3 = dconv(bn_dconv2, filter_size, filter_size, 'dconv3', 
-        #     output_shape = [self.batch_size, start_size*4, start_size*4, final_dim*2])
-        # bn_dconv3 = tf.nn.relu(batch_norm(dconv3, 'd_bn3', train = train))
-
-        # dconv4 = dconv(bn_dconv3, filter_size, filter_size, 'dconv4', 
-        #     output_shape = [self.batch_size, start_size*8, start_size*8, final_dim])
-        # bn_dconv4 = tf.nn.relu(batch_norm(dconv4, 'd_bn4', train = train))
-
-        # dconv5 = dconv(bn_dconv4, filter_size, filter_size, 'dconv5', 
-        #     output_shape = [self.batch_size, 128, 128, output_channel])
-        #     # output_shape = [self.batch_size, start_size*16, start_size*16, output_channel])
-        # generation = tf.nn.tanh(dconv5, 'd_bn5')
-        # return generation
+        return generator_MNIST(z, self.image_size, self.image_size, self.batch_size, train = train)
 
     def create_discriminator_DCGAN(self, input_im):
-        if self.DATA_TYPE is 'MNIST':
-            return discriminator_MNIST(input_im, self.batch_size)
-        else:
-            print('WRONG!!!')
-        # filter_size = 5
-        # start_depth = 64
-
-        # conv1 = conv(input_im, filter_size, filter_size, start_depth, 'conv1', stride_x = 2, stride_y = 2, relu = False)
-        # bn_conv1 = leaky_relu((batch_norm(conv1, 'c_bn1')))
-
-        # conv2 = conv(bn_conv1, filter_size, filter_size, start_depth*2, 'conv2', stride_x = 2, stride_y = 2, relu = False)
-        # bn_conv2 = leaky_relu((batch_norm(conv2, 'c_bn2')))
-
-        # conv3 = conv(bn_conv2, filter_size, filter_size, start_depth*4, 'conv3', stride_x = 2, stride_y = 2, relu = False)
-        # bn_conv3 = leaky_relu((batch_norm(conv3, 'c_bn3')))
-
-        # conv4 = conv(bn_conv3, filter_size, filter_size, start_depth*8, 'conv4', stride_x = 2, stride_y = 2, relu = False)
-        # bn_conv4 = leaky_relu((batch_norm(conv4, 'c_bn4')))
-
-        # bn_conv4_flatten = tf.reshape(bn_conv4, [-1, 8*8*start_depth*4])
-        # fc5 = fc(bn_conv4_flatten, 0, 1, 'fc5', relu = False)
-
-        # return fc5
+        return discriminator_MNIST(input_im, self.batch_size)
 
     def create_generator_MNIST(self, z):
         down_sample_size = int(self.image_size/4)
@@ -104,9 +53,7 @@ class Nets(object):
         # tf.sigmoid(fc2)
         return fc2
 
-def generator_MNIST(z, out_length, out_width, batch_size, train = True):
-    # out_length, out_width = 28, 28
-    output_channel = 1
+def generator_MNIST(z, out_length, out_width, batch_size, output_channel = self.num_channel, train = True):
 
     final_dim = 64
     filter_size = 5
@@ -116,52 +63,58 @@ def generator_MNIST(z, out_length, out_width, batch_size, train = True):
     d_height_8, d_width_8 = deconv_size(d_height_4, d_width_4)
     d_height_16, d_width_16 = deconv_size(d_height_8, d_width_8)
 
-    fc1 = fc(z, 0, d_height_16*d_width_16*final_dim*8, 'fc1')
-    fc1 = tf.nn.relu(batch_norm(fc1, 'd_bn1', train = train))
-    fc1_reshape = tf.reshape(fc1, [-1, d_height_16, d_width_16, final_dim*8])
+    with tf.variable_scope('fc1') as scope:
+        fc1 = fc(z, 0, d_height_16*d_width_16*final_dim*8, 'fc')
+        fc1 = tf.nn.relu(batch_norm(fc1, 'd_bn', train = train))
+        fc1_reshape = tf.reshape(fc1, [-1, d_height_16, d_width_16, final_dim*8])
 
-    dconv2 = dconv(fc1_reshape, filter_size, filter_size, 'dconv2', 
-        output_shape = [batch_size, d_height_8, d_width_8, final_dim*4])
-    bn_dconv2 = tf.nn.relu(batch_norm(dconv2, 'd_bn2', train = train))
+    with tf.variable_scope('dconv2') as scope:
+        dconv2 = dconv(fc1_reshape, filter_size, filter_size, 'dconv', 
+            output_shape = [batch_size, d_height_8, d_width_8, final_dim*4])
+        bn_dconv2 = tf.nn.relu(batch_norm(dconv2, 'd_bn', train = train))
 
-    dconv3 = dconv(bn_dconv2, filter_size, filter_size, 'dconv3', 
-        output_shape = [batch_size, d_height_4, d_width_4, final_dim*2])
-    bn_dconv3 = tf.nn.relu(batch_norm(dconv3, 'd_bn3', train = train))
+    with tf.variable_scope('dconv3') as scope:
+        dconv3 = dconv(bn_dconv2, filter_size, filter_size, 'dconv', 
+            output_shape = [batch_size, d_height_4, d_width_4, final_dim*2])
+        bn_dconv3 = tf.nn.relu(batch_norm(dconv3, 'd_bn', train = train))
 
-    dconv4 = dconv(bn_dconv3, filter_size, filter_size, 'dconv4', 
-        output_shape = [batch_size, d_height_2, d_width_2, final_dim])
-    bn_dconv4 = tf.nn.relu(batch_norm(dconv4, 'd_bn4', train = train))
+    with tf.variable_scope('dconv4') as scope:
+        dconv4 = dconv(bn_dconv3, filter_size, filter_size, 'dconv', 
+            output_shape = [batch_size, d_height_2, d_width_2, final_dim])
+        bn_dconv4 = tf.nn.relu(batch_norm(dconv4, 'd_bn', train = train))
 
-    dconv5 = dconv(bn_dconv4, filter_size, filter_size, 'dconv5', 
-        output_shape = [batch_size, out_length, out_width, output_channel])
-    # bn_dconv5 = tf.nn.relu(batch_norm(dconv5, 'd_bn5', train = train))
-    bn_dconv5 = batch_norm(dconv5, 'd_bn5', train = train)
+    with tf.variable_scope('dconv5') as scope:
+        dconv5 = dconv(bn_dconv4, filter_size, filter_size, 'dconv', 
+            output_shape = [batch_size, out_length, out_width, output_channel])
+        bn_dconv5 = batch_norm(dconv5, 'd_bn', train = train)
 
     generation = tf.nn.tanh(bn_dconv5, 'gen_out')
-    # generation = tf.nn.sigmoid(bn_dconv5, 'gen_out')
     return generation
-
 
 def discriminator_MNIST(input_im, batch_size):
     filter_size = 5
     start_depth = 64
 
-    conv1 = conv(input_im, filter_size, filter_size, start_depth, 'conv1', stride_x = 2, stride_y = 2, relu = False)
-    bn_conv1 = leaky_relu((batch_norm(conv1, 'c_bn1')))
+    with tf.variable_scope('conv1') as scope:
+        conv1 = conv(input_im, filter_size, filter_size, start_depth, 'conv', stride_x = 2, stride_y = 2, relu = False)
+        bn_conv1 = leaky_relu((batch_norm(conv1, 'c_bn')))
 
-    conv2 = conv(bn_conv1, filter_size, filter_size, start_depth*2, 'conv2', stride_x = 2, stride_y = 2, relu = False)
-    bn_conv2 = leaky_relu((batch_norm(conv2, 'c_bn2')))
+    with tf.variable_scope('conv2') as scope:
+        conv2 = conv(bn_conv1, filter_size, filter_size, start_depth*2, 'conv', stride_x = 2, stride_y = 2, relu = False)
+        bn_conv2 = leaky_relu((batch_norm(conv2, 'c_bn')))
 
-    conv3 = conv(bn_conv2, filter_size, filter_size, start_depth*4, 'conv3', stride_x = 2, stride_y = 2, relu = False)
-    bn_conv3 = leaky_relu((batch_norm(conv3, 'c_bn3')))
+    with tf.variable_scope('conv3') as scope:
+        conv3 = conv(bn_conv2, filter_size, filter_size, start_depth*4, 'conv', stride_x = 2, stride_y = 2, relu = False)
+        bn_conv3 = leaky_relu((batch_norm(conv3, 'c_bn')))
 
-    conv4 = conv(bn_conv3, filter_size, filter_size, start_depth*8, 'conv4', stride_x = 2, stride_y = 2, relu = False)
-    bn_conv4 = leaky_relu((batch_norm(conv4, 'c_bn4')))
+    with tf.variable_scope('conv4') as scope:
+        conv4 = conv(bn_conv3, filter_size, filter_size, start_depth*8, 'conv', stride_x = 2, stride_y = 2, relu = False)
+        bn_conv4 = leaky_relu((batch_norm(conv4, 'c_bn')))
+        bn_conv4_shape = bn_conv4.get_shape().as_list()
+        bn_conv4_flatten = tf.reshape(bn_conv4, [batch_size, bn_conv4_shape[1]*bn_conv4_shape[2]*bn_conv4_shape[3]])
 
-    # bn_conv4_flatten = tf.reshape(bn_conv4, [batch_size, 2*2*start_depth*8])
-    bn_conv4_shape = bn_conv4.get_shape().as_list()
-    bn_conv4_flatten = tf.reshape(bn_conv4, [batch_size, bn_conv4_shape[1]*bn_conv4_shape[2]*bn_conv4_shape[3]])
-    fc5 = fc(bn_conv4_flatten, 0, 1, 'fc5', relu = False)
+    with tf.variable_scope('fc5') as scope:
+        fc5 = fc(bn_conv4_flatten, 0, 1, 'fc', relu = False)
 
     return fc5
 

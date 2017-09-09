@@ -11,6 +11,7 @@ from common import *
 
 class GAN(object):
     def __init__(self, len_random_vector = 32, image_size = 28, batch_size = 32, num_channel = 1,
+        d_learning_rate = 0.0002, g_learning_rate = 0.0002,
         save_model_path = '', save_result_path = '', data_type = 'default'):
         """
         Inputs:
@@ -19,8 +20,7 @@ class GAN(object):
         - weights_path: path string, path to the pretrained weights,
                     (if bvlc_alexnet.npy is not in the same folder)
         """
-        # self.X = x
-        # self.Z = z
+
         self.image_size = image_size
         self.len_random_vector = len_random_vector
         self.X = tf.placeholder(tf.float32, [None, self.image_size, self.image_size, num_channel])
@@ -32,7 +32,7 @@ class GAN(object):
 
         self.batch_size = batch_size
 
-        GAN_model = Nets(self.image_size, self.batch_size, self.KEEP_PROB, data_type = data_type)
+        GAN_model = Nets(self.image_size, self.batch_size, self.KEEP_PROB, data_type = data_type, num_channel = num_channel)
         
         with tf.variable_scope('generator') as scope:
             self.generation = GAN_model.create_generator_DCGAN(self.Z)
@@ -63,13 +63,13 @@ class GAN(object):
 
         with tf.name_scope('train'):
             d_training_vars = [v for v in tf.trainable_variables() if v.name.startswith('discriminator/')]
-            d_optimizer = tf.train.AdamOptimizer(learning_rate = 0.0002, beta1=0.5)
+            d_optimizer = tf.train.AdamOptimizer(learning_rate = d_learning_rate, beta1=0.5)
             d_grads = d_optimizer.compute_gradients(self.d_loss, var_list = d_training_vars)
             self.d_optimizer = d_optimizer.apply_gradients(d_grads)
             # self.d_optimizer = tf.train.AdamOptimizer(learning_rate = 0.0002, beta1=0.5).minimize(self.d_loss, var_list = d_training_vars)
 
             g_training_vars = [v for v in tf.trainable_variables() if v.name.startswith('generator/')]
-            g_optimizer = tf.train.AdamOptimizer(learning_rate = 0.0002, beta1=0.5)
+            g_optimizer = tf.train.AdamOptimizer(learning_rate = g_learning_rate, beta1=0.5)
             g_grads = g_optimizer.compute_gradients(self.g_loss, var_list = g_training_vars)
             self.g_optimizer = g_optimizer.apply_gradients(g_grads)
             # self.g_optimizer = tf.train.AdamOptimizer(learning_rate = 0.0002, beta1=0.5).minimize(self.g_loss, var_list = g_training_vars)  
@@ -91,7 +91,7 @@ class GAN(object):
                 feed_dict = {self.X: batch, self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 0.5})
             writer.add_summary(d_sum, step)
 
-        for i in range(0,2):
+        for i in range(0,3):
             _, generator_loss, g_sum = session.run([self.g_optimizer, self.g_loss, self.g_sum],
                 feed_dict = {self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 1.0})
             writer.add_summary(g_sum, step)

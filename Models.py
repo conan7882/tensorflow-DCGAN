@@ -63,13 +63,24 @@ class GAN(object):
 
         with tf.name_scope('train'):
             d_training_vars = [v for v in tf.trainable_variables() if v.name.startswith('discriminator/')]
-            self.d_optimizer = tf.train.AdamOptimizer(learning_rate = 0.0002, beta1=0.5).minimize(self.d_loss, var_list = d_training_vars)
+            d_optimizer = tf.train.AdamOptimizer(learning_rate = 0.0002, beta1=0.5)
+            d_grads = d_optimizer.compute_gradients(self.d_loss, var_list = d_training_vars)
+            self.d_optimizer = d_optimizer.apply_gradients(d_grads)
+            # self.d_optimizer = tf.train.AdamOptimizer(learning_rate = 0.0002, beta1=0.5).minimize(self.d_loss, var_list = d_training_vars)
 
             g_training_vars = [v for v in tf.trainable_variables() if v.name.startswith('generator/')]
-            self.g_optimizer = tf.train.AdamOptimizer(learning_rate = 0.0002, beta1=0.5).minimize(self.g_loss, var_list = g_training_vars)  
+            g_optimizer = tf.train.AdamOptimizer(learning_rate = 0.0002, beta1=0.5)
+            g_grads = g_optimizer.compute_gradients(self.g_loss, var_list = g_training_vars)
+            self.g_optimizer = g_optimizer.apply_gradients(g_grads)
+            # self.g_optimizer = tf.train.AdamOptimizer(learning_rate = 0.0002, beta1=0.5).minimize(self.g_loss, var_list = g_training_vars)  
 
-        self.g_sum = tf.summary.merge([g_loss_summary, G_summary])
-        self.d_sum = tf.summary.merge([d_loss_summary, d_real_summary, d_fake_summary])
+        d_var_summary = [tf.summary.histogram(var.name, var) for var in d_training_vars]
+        g_var_summary = [tf.summary.histogram(var.name, var) for var in g_training_vars]
+        d_grads_summary = [tf.summary.histogram('gradient/' + var.name, grad) for grad, var in d_grads]
+        g_grads_summary = [tf.summary.histogram('gradient/' + var.name, grad) for grad, var in g_grads]
+
+        self.g_sum = tf.summary.merge([g_loss_summary, G_summary, g_var_summary, g_grads_summary])
+        self.d_sum = tf.summary.merge([d_loss_summary, d_real_summary, d_fake_summary, d_var_summary, d_grads_summary])
 
     def train_model(self, batch, step, idx, epoch_id, save_step, saver, session, writer):
         batch_size = self.batch_size
@@ -80,7 +91,7 @@ class GAN(object):
                 feed_dict = {self.X: batch, self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 0.5})
             writer.add_summary(d_sum, step)
 
-        for i in range(0,5):
+        for i in range(0,2):
             _, generator_loss, g_sum = session.run([self.g_optimizer, self.g_loss, self.g_sum],
                 feed_dict = {self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 1.0})
             writer.add_summary(g_sum, step)

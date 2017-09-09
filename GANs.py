@@ -106,7 +106,7 @@ class Nets(object):
 
 def generator_MNIST(z, out_length, out_width, batch_size, train = True):
     # out_length, out_width = 28, 28
-    output_channel = 3
+    output_channel = 1
 
     final_dim = 64
     filter_size = 5
@@ -134,7 +134,8 @@ def generator_MNIST(z, out_length, out_width, batch_size, train = True):
 
     dconv5 = dconv(bn_dconv4, filter_size, filter_size, 'dconv5', 
         output_shape = [batch_size, out_length, out_width, output_channel])
-    bn_dconv5 = tf.nn.relu(batch_norm(dconv5, 'd_bn5', train = train))
+    # bn_dconv5 = tf.nn.relu(batch_norm(dconv5, 'd_bn5', train = train))
+    bn_dconv5 = batch_norm(dconv5, 'd_bn5', train = train)
 
     generation = tf.nn.tanh(bn_dconv5, 'gen_out')
     # generation = tf.nn.sigmoid(bn_dconv5, 'gen_out')

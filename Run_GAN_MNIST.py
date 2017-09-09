@@ -32,7 +32,7 @@ def main(_):
       train_digits_of_interest = []
       for image, label in zip(mnist_data.train.images, mnist_data.train.labels):
         # image = image.reshape((28,28,1)).astype(np.float)
-        # image = image/255.
+        image = image*2.-1.
         # print(image[300:400])
           # if label[digit]:
         train_digits_of_interest.append(image)

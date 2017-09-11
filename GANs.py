@@ -12,11 +12,17 @@ class Nets(object):
         self.KEEP_PROB = keep_prob
         self.DATA_TYPE = data_type
 
-    def create_generator_DCGAN(self, z, train = True):
-        return generator_MNIST(z, self.image_size, self.image_size, self.batch_size, train = train, output_channel = self.num_channel)
+    def create_generator_DCGAN(self, z, train = True, reuse = False):
+        with tf.variable_scope('generator') as scope:
+            if reuse:
+                scope.reuse_variables()
+            return generator_MNIST(z, self.image_size, self.image_size, self.batch_size, train = train, output_channel = self.num_channel)
 
-    def create_discriminator_DCGAN(self, input_im):
-        return discriminator_MNIST(input_im, self.batch_size)
+    def create_discriminator_DCGAN(self, input_im, reuse = False):
+        with tf.variable_scope('discriminator') as scope:
+            if reuse:
+                scope.reuse_variables()
+            return discriminator_MNIST(input_im, self.batch_size)
 
     def create_generator_MNIST(self, z):
         down_sample_size = int(self.image_size/4)

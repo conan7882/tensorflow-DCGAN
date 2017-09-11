@@ -11,7 +11,7 @@ from Models import *
 def main(_):
 
     num_channels = FLAGS.num_channels
-    image_size = 32
+    image_size = 64
 
     model = GAN(len_random_vector = FLAGS.len_random_vector, save_model_path = FLAGS.save_model_path, save_result_path = FLAGS.save_result_path, 
       image_size = image_size, batch_size = FLAGS.batch_size,
@@ -21,7 +21,7 @@ def main(_):
     
     with tf.Session() as sess:
       sess.run(tf.global_variables_initializer())
-      saver.restore(sess, FLAGS.save_model_path + 'my-model-77700')
+      saver.restore(sess, FLAGS.save_model_path + 'my-model-9900')
       model.test_model(sess)
 
 
@@ -43,7 +43,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--num_channels',
       type=int,
-      default=3,
+      default=1,
       help='Number of input channel'
   )
   parser.add_argument(
@@ -56,14 +56,14 @@ if __name__ == '__main__':
   parser.add_argument(
       '--len_random_vector',
       type=int,
-      default=32,
+      default=100,
       help='Length of input random vector'
   )
 
   parser.add_argument(
       '--batch_size',
       type=int,
-      default=64,
+      default=32,
       help='Size of batch'
   )
   FLAGS, unparsed = parser.parse_known_args()

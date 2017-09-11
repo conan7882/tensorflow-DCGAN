@@ -37,15 +37,14 @@ class GAN(object):
 
         GAN_model = Nets(self.image_size, self.batch_size, self.KEEP_PROB, data_type = data_type, num_channel = num_channel)
         
-        with tf.variable_scope('generator') as scope:
-            self.generation = GAN_model.create_generator_DCGAN(self.Z)
-            scope.reuse_variables()
-            self.sample = GAN_model.create_generator_DCGAN(self.Z, train = False)
+        # with tf.variable_scope('generator') as scope:
+        self.generation = GAN_model.create_generator_DCGAN(self.Z)
+        # scope.reuse_variables()
+        self.sample = GAN_model.create_generator_DCGAN(self.Z, train = False, reuse = True)
             
-        with tf.variable_scope('discriminator') as scope:
-            self.discrim_real = GAN_model.create_discriminator_DCGAN(self.X)
-            scope.reuse_variables()
-            self.disrim_gen = GAN_model.create_discriminator_DCGAN(self.generation)
+        self.discrim_real = GAN_model.create_discriminator_DCGAN(self.X)
+        self.disrim_gen = GAN_model.create_discriminator_DCGAN(self.generation, reuse = True)
+        
         d_real_summary = tf.summary.histogram("d_", tf.nn.sigmoid(self.discrim_real))
         d_fake_summary = tf.summary.histogram("d", tf.nn.sigmoid(self.disrim_gen))
         G_summary = tf.summary.image("G", self.generation)

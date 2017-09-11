@@ -15,10 +15,10 @@ import data_image
 def main(_):
 
     num_channels = FLAGS.num_channels
-    image_size = 128
+    image_size = 64
 
     model = GAN(len_random_vector = FLAGS.len_random_vector, save_model_path = FLAGS.save_model_path, save_result_path = FLAGS.save_result_path, 
-      image_size = image_size, batch_size = FLAGS.batch_size, data_type = 'MNIST')
+      image_size = image_size, batch_size = FLAGS.batch_size, data_type = 'MNIST', flag_debug = False)
 
     saver = tf.train.Saver()
     
@@ -69,7 +69,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--train_dir',
       type=str,
-      default='D:\\GoogleDrive_Qian\\Foram\\Training\\CNN_GAN\\',
+      default='D:\\GoogleDrive_Qian\\Foram\\Training\\CNN_GAN_ORIGINAL_64\\',
       help='Directory for storing training data'
   )
 

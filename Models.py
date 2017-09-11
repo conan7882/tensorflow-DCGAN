@@ -2,6 +2,7 @@ import numpy as np
 import argparse
 import sys, os
 import scipy.io
+from scipy import interpolate
 
 import tensorflow as tf 
 
@@ -12,7 +13,8 @@ from common import *
 class GAN(object):
     def __init__(self, len_random_vector = 32, image_size = 28, batch_size = 32, num_channel = 1,
         d_learning_rate = 0.0002, g_learning_rate = 0.0002,
-        save_model_path = '', save_result_path = '', data_type = 'default'):
+        save_model_path = '', save_result_path = '', data_type = 'default',
+        flag_debug = True):
         """
         Inputs:
         - x: tf.placeholder, for the input images
@@ -20,6 +22,7 @@ class GAN(object):
         - weights_path: path string, path to the pretrained weights,
                     (if bvlc_alexnet.npy is not in the same folder)
         """
+        self.flag_debug = flag_debug
 
         self.image_size = image_size
         self.len_random_vector = len_random_vector
@@ -82,23 +85,50 @@ class GAN(object):
         self.g_sum = tf.summary.merge([g_loss_summary, G_summary, g_grads_summary])
         self.d_sum = tf.summary.merge([d_loss_summary, d_real_summary, d_fake_summary, d_grads_summary])
 
+    def test_model(self, session):
+        batch_size = self.batch_size
+        len_rand_vec = self.len_random_vector
+        test_vec_1 = np.random.normal(size = (batch_size, len_rand_vec))
+        test_vec_2 = np.random.normal(size = (batch_size, len_rand_vec))
+
+        result_1 = session.run(self.sample, {self.Z: test_vec_1})
+        result_2 = session.run(self.sample, {self.Z: test_vec_2})
+        if batch_size == 32:
+            sample_image_grid_size = [6,6]
+        else:
+            sample_image_grid_size = [8,8]
+        save_images(result_1, sample_image_grid_size, self.save_result_path + 'test_result_01.png')
+        save_images(result_2, sample_image_grid_size, self.save_result_path + 'test_result_02.png')
+
+        x = [0, batch_size-1]
+        y = np.array([test_vec_1[0], test_vec_2[0]])
+        f = interpolate.interp1d(x, y, axis = 0)
+        x_interp = range(0, batch_size)
+        y_interp = f(x_interp)
+        result_interp = session.run(self.sample, {self.Z: y_interp})
+        save_images(result_interp, sample_image_grid_size, self.save_result_path + 'test_result_interp.png')
+
     def train_model(self, batch, step, idx, epoch_id, save_step, saver, session, writer):
         batch_size = self.batch_size
         len_rand_vec = self.len_random_vector
         
         for i in range(0,1):
-            _, discriminator_loss, d_sum = session.run([self.d_optimizer, self.d_loss, self.d_sum],
-                feed_dict = {self.X: batch, self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 0.5})
-            writer.add_summary(d_sum, step)
-            # session.run(self.d_optimizer,
-            #     feed_dict = {self.X: batch, self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 0.5})
+            if self.flag_debug:
+                _, discriminator_loss, d_sum = session.run([self.d_optimizer, self.d_loss, self.d_sum],
+                    feed_dict = {self.X: batch, self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 0.5})
+                writer.add_summary(d_sum, step)
+            else:
+                _, discriminator_loss = session.run([self.d_optimizer, self.d_loss],
+                    feed_dict = {self.X: batch, self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 0.5})
 
-        for i in range(0,3):
-            _, generator_loss, g_sum = session.run([self.g_optimizer, self.g_loss, self.g_sum],
-                feed_dict = {self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 1.0})
-            writer.add_summary(g_sum, step)
-            # session.run(self.g_optimizer,
-            #     feed_dict = {self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 1.0})
+        for i in range(0,2):
+            if self.flag_debug:
+                _, generator_loss, g_sum = session.run([self.g_optimizer, self.g_loss, self.g_sum],
+                    feed_dict = {self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 1.0})
+                writer.add_summary(g_sum, step)
+            else:
+                _, generator_loss = session.run([self.g_optimizer, self.g_loss],
+                    feed_dict = {self.Z: np.random.normal(size = (batch_size, len_rand_vec)), self.KEEP_PROB: 1.0})
 
 
         if step % save_step == 0:
@@ -116,7 +146,7 @@ class GAN(object):
 
           save_images(result, sample_image_grid_size, self.save_result_path + 'test_result_' + "%03d" % step + '.png')
           # scipy.io.savemat(self.save_result_path + 'test_FCN_result_' + "%03d" % step + '.mat', mdict = {'resultList': np.squeeze(result)})
-          # saver.save(session, self.save_model_path + 'my-model', global_step = step)
+          saver.save(session, self.save_model_path + 'my-model', global_step = step)
 
 
 

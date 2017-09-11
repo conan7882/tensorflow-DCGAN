@@ -199,7 +199,7 @@ def load_batch_image(batch_file_path, num_channels = 1):
         image ,_ ,_ = load_training_image(file_path, num_channels = num_channels)
         image_list.extend(image)
         # image_list = np.append(image_list, image, axis=0)
-    return image_list
+    return np.array(image_list)
 
 
 def load_training_image(file_path, num_channels = 1):
@@ -219,7 +219,7 @@ def load_image(test_file_path, num_channels):
     mat = scipy.io.loadmat(test_file_path)
     image = mat['level1Edge'].astype('float')
     print('Load successfully.') 
-    return np.reshape(image, [1, image.shape[0], image.shape[1], num_channels])
+    return np.array(np.reshape(image, [1, image.shape[0], image.shape[1], num_channels]))
 
 def average_train_data(file_list, num_channels):
     mean_list = np.empty(shape=[num_channels], dtype = float)

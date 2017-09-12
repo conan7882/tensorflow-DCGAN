@@ -1,8 +1,11 @@
 # tensorflow-DCGAN
 
 TensorFlow implementation of [Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks](https://arxiv.org/abs/1511.06434). 
+
 The code is inspired by: 
+
 A TensorFlow implementation of DCGAN https://github.com/carpedm20/DCGAN-tensorflow
+
 A very good and clear explaination of how to fine tune AlexNet using TensorFlow https://kratzert.github.io/2017/02/24/finetuning-alexnet-with-tensorflow.html
 * DCGAN generator used for LSUN in the paper
 <!--- *

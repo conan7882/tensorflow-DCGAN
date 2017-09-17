@@ -14,6 +14,7 @@ def save_images(images, im_size, save_path):
 
     # normalization of tanh output
     img = (images + 1.0) / 2.0
+    # img = images
     h, w = img.shape[1], img.shape[2]
 
     merge_img = np.zeros((h * im_size[0], w * im_size[1], 3))

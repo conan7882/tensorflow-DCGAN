@@ -92,7 +92,8 @@ def generator_MNIST(z, out_length, out_width, batch_size, output_channel = 1, tr
     with tf.variable_scope('dconv5') as scope:
         dconv5 = dconv(bn_dconv4, filter_size, filter_size, 'dconv', 
             output_shape = [batch_size, out_length, out_width, output_channel])
-        bn_dconv5 = batch_norm(dconv5, 'd_bn', train = train)
+        bn_dconv5 = dconv5
+        # bn_dconv5 = batch_norm(dconv5, 'd_bn', train = train)
 
     generation = tf.nn.tanh(bn_dconv5, 'gen_out')
     return generation
@@ -103,7 +104,8 @@ def discriminator_MNIST(input_im, batch_size):
 
     with tf.variable_scope('conv1') as scope:
         conv1 = conv(input_im, filter_size, filter_size, start_depth, 'conv', stride_x = 2, stride_y = 2, relu = False)
-        bn_conv1 = leaky_relu((batch_norm(conv1, 'c_bn')))
+        bn_conv1 = leaky_relu(conv1)
+        # bn_conv1 = leaky_relu((batch_norm(conv1, 'c_bn')))
 
     with tf.variable_scope('conv2') as scope:
         conv2 = conv(bn_conv1, filter_size, filter_size, start_depth*2, 'conv', stride_x = 2, stride_y = 2, relu = False)

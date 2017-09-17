@@ -16,7 +16,7 @@ def main(_):
     image_size = 28
 
     model = GAN(len_random_vector = FLAGS.len_random_vector, save_model_path = FLAGS.save_model_path, save_result_path = FLAGS.save_result_path, 
-      image_size = image_size, batch_size = FLAGS.batch_size, data_type = 'MNIST')
+      image_size = image_size, batch_size = FLAGS.batch_size, data_type = 'MNIST',  flag_debug = False)
 
     saver = tf.train.Saver()
     writer = tf.summary.FileWriter(FLAGS.save_model_path)
@@ -33,13 +33,17 @@ def main(_):
         image = image*2.-1.
           # if label[digit]:
         train_digits_of_interest.append(image)
+      for image, label in zip(mnist_data.test.images, mnist_data.test.labels):
+          # if label[digit] or label[digit_2]:
+          image = image*2.-1.
+          train_digits_of_interest.append(image)
       random.shuffle(train_digits_of_interest)
 
       batch_size = FLAGS.batch_size
       epoch_id = 1
       step = 0
       idx = 0
-      while epoch_id <= 25:
+      while epoch_id <= 100:
         batch_index = step * batch_size % len(train_digits_of_interest)
         if batch_index > len(train_digits_of_interest) - batch_size:
           batch_index = len(train_digits_of_interest) - batch_size
@@ -49,6 +53,7 @@ def main(_):
         idx += 1
         batch = train_digits_of_interest[batch_index:(batch_index + batch_size)]
         batch = np.reshape(batch, [len(batch), image_size, image_size, 1])
+        # save_images(batch, [8,8], FLAGS.save_result_path + 'batch_' + "%03d" % step + '.png')
 
         model.train_model(batch, step, idx, epoch_id, 100, saver, sess, writer)
         step += 1

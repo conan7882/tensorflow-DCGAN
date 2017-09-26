@@ -53,7 +53,7 @@ To test using an existing model, size and channels of images used for training t
 
 ## Training Details
 - Both discriminator and generator use learning rate 0.0002
-- To avoid small discriminator loss, update generator twice for each update of discriminator, as suggested [here](https://github.com/carpedm20/DCGAN-tensorflow).
+- To avoid small discriminator loss, update generator twice for each update of discriminator, as suggested [here](https://github.com/carpedm20/DCGAN-tensorflow#dcgan-in-tensorflow).
 - init
 
 ## Default Summary
@@ -67,8 +67,8 @@ To test using an existing model, size and channels of images used for training t
 ### Image
 - real image and generated image
 
-## Costum Configuration
-*details can be found in docs (comming soon)*
+## Custom Configuration
+*details can be found in docs (coming soon)*
 ### Available callbacks:
 
 - TrainSummary()

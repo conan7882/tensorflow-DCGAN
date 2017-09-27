@@ -33,7 +33,7 @@ def get_config(FLAGS):
         dataset_train = ImageData('.png', data_dir = config.data_dir,
                                    normalize = 'tanh')
 
-    inference_list = InferImages('generator/gen_image', prefix = 'gen')
+    inference_list = InferImages('generate_image', prefix = 'gen')
     random_feed = RandomVec(len_vec = FLAGS.len_vec)
     
     return GANTrainConfig(
@@ -43,15 +43,12 @@ def get_config(FLAGS):
             monitors = TFSummaryWriter(),
             discriminator_callbacks = [
                 ModelSaver(periodic = 100), 
-                TrainSummary(key = 'summary_d', periodic = 10),
-                CheckScalar(['d_loss/result','g_loss/result','generator/dconv5/gen_shape',
-                             'd_loss_check', 'g_loss_check'], 
+                CheckScalar(['d_loss_check', 'g_loss_check'], 
                             periodic = 10),
               ],
             generator_callbacks = [
                         GANInference(inputs = random_feed, periodic = 100, 
                                     inferencers = inference_list),
-                        TrainSummary(key = 'summary_g', periodic = 10),
                     ],              
             batch_size = FLAGS.batch_size, 
             max_epoch = 100,
@@ -61,7 +58,7 @@ def get_config(FLAGS):
 
 def get_predictConfig(FLAGS):
     random_feed = RandomVec(len_vec = FLAGS.len_vec)
-    prediction_list = PredictionImage('generator/gen_image', 
+    prediction_list = PredictionImage('generate_image', 
                                       'test', merge_im = True)
     im_size = [FLAGS.h, FLAGS.w]
     return PridectConfig(

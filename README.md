@@ -1,11 +1,11 @@
 ## Deep Convolutional Generative Adversarial Networks (DCGAN)
 
 
-TensorFlow implementation of [Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks](https://arxiv.org/abs/1511.06434). 
+- TensorFlow implementation of [Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks](https://arxiv.org/abs/1511.06434). 
 
-The DCGAN model is defined [here](https://github.com/conan7882/DeepVision-tensorflow/tree/master/algorithms/GAN).
+- The DCGAN model is defined [here](https://github.com/conan7882/DeepVision-tensorflow/tree/master/tensorcv/algorithms/GAN).
 
-Please refer to the docs (coming soon) for custom configuration of the model and the callbacks setup.
+- Please refer to the docs (coming soon) for custom configuration of the model and the callbacks setup.
 
 
 
@@ -19,30 +19,35 @@ Please refer to the docs (coming soon) for custom configuration of the model and
 ### Config path
 All directories are setup in *config.py*.
 
-Before training, put all the training images in *`config.data_dir`*.
+- Before training, put all the training images in *`config.data_dir`*.
+- Trained model will be saved every 100 steps in *`config.model_dir`*.
+- Sample generated images will be saved every 100 training steps in *`config.infer_dir`*.
+- Images generated during testing will be saved in *`config.result_dir`*.
 
 **Please note, all the images should have the same size.**
 
 
 ### Run script
 
-You can run this script on CIFAR10, MNIST dataset as well as your own dataset in format of Matlab .mat files and image files.
+- You can run this script on CIFAR10, MNIST dataset as well as your own dataset in format of Matlab .mat files and image files.
+
+
 
 To train a model on CIFAR10 and MNIST dataset:
 
-	$ python DCGAN.py --train --cifar --batch_size 32
-	$ python DCGAN.py --train --mnist --batch_size 32
+	$ python DCGAN.py --train --cifar --batch_size 64
+	$ python DCGAN.py --train --mnist --batch_size 64
 
 
 To train on your own dataset:
 
 .mat files:
 
-	$ python DCGAN.py --train --matlab --batch_size 32 --mat_name MAT_NAME_IN_MAT_FILE
+	$ python DCGAN.py --train --matlab --batch_size 64 --mat_name MAT_NAME_IN_MAT_FILE
 
 images files:
 
-	$ python DCGAN.py --train --image --batch_size 32 --type IMAGE_FILE_EXTENSION(start with '.')
+	$ python DCGAN.py --train --image --batch_size 64 --type IMAGE_FILE_EXTENSION(start with '.')
 	 
 To test using an existing model, size and channels of images used for training the model need to be specified, and the batch size has to be the same as training:
 
@@ -57,6 +62,7 @@ To test using an existing model, size and channels of images used for training t
 - init
 
 ## Default Summary
+Summary is written every 10 steps.
 ### Scalar:
 - loss of generator and discriminator
 

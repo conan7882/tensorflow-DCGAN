@@ -11,7 +11,6 @@ from tensorcv.dataflow import *
 from tensorcv.callbacks import *
 from tensorcv.predicts import *
 from tensorcv.predicts.simple import SimpleFeedPredictor
-from tensorcv.models.base import GANBaseModel
 from tensorcv.train.config import GANTrainConfig
 from tensorcv.train.simple import GANFeedTrainer
 from tensorcv.algorithms.GAN.DCGAN import Model
@@ -30,8 +29,11 @@ def get_config(FLAGS):
                                data_dir = config.data_dir,
                                normalize = 'tanh')
     elif FLAGS.image:
-        dataset_train = ImageData('.png', data_dir = config.data_dir,
-                                   normalize = 'tanh')
+        # dataset_train = ImageData('.png', data_dir = config.data_dir,
+        #                            normalize = 'tanh')
+        dataset_train = ImageFromFile(FLAGS.type, 
+                                data_dir = config.data_dir, 
+                                normalize = 'tanh')
 
     inference_list = InferImages('generate_image', prefix = 'gen')
     random_feed = RandomVec(len_vec = FLAGS.len_vec)
@@ -100,6 +102,8 @@ def get_args():
 
     parser.add_argument('--image', action = 'store_true',
                         help = 'Run on dataset of image files')
+    parser.add_argument('--type', type = str,
+                        help = 'Image file type')
 
     return parser.parse_args()
 

@@ -6,13 +6,24 @@
 - The DCGAN model is defined [here](https://github.com/conan7882/DeepVision-tensorflow/tree/master/tensorcv/algorithms/GAN).
 
 - Please refer to the docs (coming soon) for custom configuration of the model and the callbacks setup.
-
-
-
+- 
 ## Requirements
 - Python 3.3+
 - [Tensorflow 1.0+](https://www.tensorflow.org/)
 - [TensorCV](https://github.com/conan7882/DeepVision-tensorflow)
+
+## Results
+
+### CIFAR10
+![cifar_result1](fig/cifar_result.png)
+
+### MNIST
+
+![MNIST_result1](fig/mnist_result.png)
+
+*More results will be added later.*
+
+
 
 
 ## Usage
@@ -20,9 +31,11 @@
 All directories are setup in *config.py*.
 
 - Before training, put all the training images in *`config.data_dir`*.
-- Trained model will be saved every 100 steps in *`config.model_dir`*.
-- Sample generated images will be saved every 100 training steps in *`config.infer_dir`*.
+- Trained model will be saved in *`config.model_dir`* every 100 steps.
+- Summary will be saved *`config.summary_dir`* every 10 steps in.
+- Sample generated images will be saved in *`config.infer_dir`* every 100 training steps.
 - Images generated during testing will be saved in *`config.result_dir`*.
+
 
 **Please note, all the images should have the same size.**
 
@@ -62,7 +75,6 @@ To test using an existing model, size and channels of images used for training t
 - init
 
 ## Default Summary
-Summary is written every 10 steps.
 ### Scalar:
 - loss of generator and discriminator
 
@@ -84,16 +96,6 @@ Summary is written every 10 steps.
 ### Available inferencer:
 - InferImages()
 
-## Results
-
-### CIFAR10
-![cifar_result1](fig/cifar_result.png)
-
-### MNIST
-
-![MNIST_result1](fig/mnist_result.png)
-
-*More results will be added later.*
 
 ## Training Details
 

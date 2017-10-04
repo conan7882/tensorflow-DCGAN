@@ -43,8 +43,7 @@ def get_config(FLAGS):
             monitors = TFSummaryWriter(),
             discriminator_callbacks = [
                 ModelSaver(periodic = 100), 
-                CheckScalar(['d_loss_check', 'g_loss_check'], 
-                            periodic = 10),
+                CheckScalar(['d_loss_check', 'g_loss_check'], periodic = 10),
               ],
             generator_callbacks = [
                         GANInference(inputs = random_feed, periodic = 100, 

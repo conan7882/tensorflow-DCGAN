@@ -28,13 +28,13 @@
 
 ## Usage
 ### Config path
-All directories are setup in *config.py*.
+All directories are setup in `config.py`.
 
-- Before training, put all the training images in *`config.data_dir`*.
-- Trained model will be saved in *`config.model_dir`* every 100 steps.
-- Summary will be saved *`config.summary_dir`* every 10 steps in.
-- Sample generated images will be saved in *`config.infer_dir`* every 100 training steps.
-- Images generated during testing will be saved in *`config.result_dir`*.
+- Before training, put all the training images in `config.data_dir`.
+- Trained model will be saved in `config.model_dir` every 100 steps.
+- Summary will be saved `config.summary_dir` every 10 steps in.
+- Sample generated images will be saved in `config.infer_dir` every 100 training steps.
+- Images generated during testing will be saved in `config.result_dir`.
 
 
 **Please note, all the images should have the same size.**
